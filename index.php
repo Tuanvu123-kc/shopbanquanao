@@ -2,8 +2,8 @@
 include "config.php";
 
 // Truy vấn danh sách sản phẩm
-$sql = "SELECT id, name, image, price FROM products";
-$result = $conn->query($sql);
+$mysql = "SELECT id, name, image, price FROM products";
+$result = $conn->query($mysql);
 
 // Kiểm tra lỗi truy vấn
 if (!$result) {
