@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
 
     if (!empty($username) && !empty($password) && !empty($email)) {
-        $stmt = $conn->prepare("INSERT INTO users (username, password, email, created_at) VALUES (?, ?, ?, NOW())");
+        $stmt = $conn->prepare("INSERT INTO users (id, username, password, email, created_at) VALUES (?, ?, ?, NOW())");
         $stmt->bind_param("sss", $username, $password, $email);
         
         if ($stmt->execute()) {
