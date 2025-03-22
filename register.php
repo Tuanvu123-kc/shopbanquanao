@@ -1,9 +1,9 @@
 <?php
 session_start();
-$servername = "database11.c3gmegauif3s.ap-southeast-2.rds.amazonaws.com";
-$username = "lamtuanvu11";
-$password = "Lamtuanvu11";
-$dbname = "lamtuanvu11";
+$servername = "database-6.c3gmegauif3s.ap-southeast-2.rds.amazonaws.com";
+$username = "admin";
+$password = "12345678";
+$dbname = "qlbh";
 
 $conn = new mysqli($servername, $username, $password, $dbname, 3306);
 if ($conn->connect_error) {
