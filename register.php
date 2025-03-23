@@ -1,5 +1,5 @@
 <?php
-require 'config.php'; // Kết nối database
+include 'config.php'; // Kết nối database
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST["username"]);
