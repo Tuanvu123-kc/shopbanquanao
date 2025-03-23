@@ -1,37 +1,33 @@
 <?php
-session_start();
-$servername = "database-6.c3gmegauif3s.ap-southeast-2.rds.amazonaws.com";
-$username = "admin";
-$password = "12345678";
-$dbname = "qlbh";
-
-$conn = new mysqli($servername, $username, $password, $dbname, 3306);
-if ($conn->connect_error) {
-    die("Kết nối thất bại: " . $conn->connect_error);
-}
+require 'config.php'; // Kết nối database
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username']);
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-    $email = trim($_POST['email']);
+    $name = trim($_POST["name"]);
+    $email = trim($_POST["email"]);
+    $password = $_POST["password"];
 
-    if (!empty($username) && !empty($password) && !empty($email)) {
-        $stmt = $conn->prepare("INSERT INTO users (id, username, password, email, created_at) VALUES (?, ?, ?, NOW())");
-        $stmt->bind_param("sss", $username, $password, $email);
-        
-        if ($stmt->execute()) {
-            echo "<div class='alert alert-success text-center'>Đăng ký thành công! <a href='login.php'>Đăng nhập</a></div>";
-        } else {
-            echo "<div class='alert alert-danger text-center'>Lỗi: " . $stmt->error . "</div>";
-        }
-
-        $stmt->close();
+    if (empty($name) || empty($email) || empty($password)) {
+        echo "Vui lòng điền đầy đủ thông tin!";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "Email không hợp lệ!";
     } else {
-        echo "<div class='alert alert-warning text-center'>Vui lòng nhập đầy đủ thông tin!</div>";
+        // Kiểm tra email đã tồn tại chưa
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        if ($stmt->rowCount() > 0) {
+            echo "Email đã được sử dụng!";
+        } else {
+            // Mã hóa mật khẩu
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+            if ($stmt->execute([$name, $email, $hashed_password])) {
+                echo "Đăng ký thành công!";
+            } else {
+                echo "Lỗi khi đăng ký!";
+            }
+        }
     }
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -39,41 +35,21 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Ký</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Đăng ký</title>
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 400px;
-            margin-top: 50px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+        form { max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; }
+        button { background: #28a745; color: white; padding: 10px; width: 100%; border: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2 class="text-center">Đăng Ký</h2>
-        <form method="post" action="">
-            <div class="mb-3">
-                <label class="form-label">Username:</label>
-                <input type="text" name="username" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Password:</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Email:</label>
-                <input type="email" name="email" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Đăng Ký</button>
-        </form>
-        <p class="text-center mt-3">Đã có tài khoản? <a href="login.php">Đăng nhập</a></p>
-    </div>
+    <h2>Đăng ký tài khoản</h2>
+    <form action="" method="POST">
+        <input type="text" name="name" placeholder="Họ và tên" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Mật khẩu" required>
+        <button type="submit">Đăng ký</button>
+    </form>
 </body>
 </html>
