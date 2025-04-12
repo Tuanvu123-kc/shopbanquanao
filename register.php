@@ -1,26 +1,41 @@
 <?php
 include 'config.php';
 
+$message = "";
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST["username"]);
     $email = trim($_POST["email"]);
     $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
 
-    $check = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-    $check->execute([$username, $email]);
+    try {
+        // Kiểm tra username hoặc email đã tồn tại
+        $check = $conn->prepare("SELECT id FROM users WHERE username = :username OR email = :email");
+        $check->bindParam(':username', $username);
+        $check->bindParam(':email', $email);
+        $check->execute();
 
-    if ($check->rowCount() > 0) {
-        $message = "Username hoặc Email đã tồn tại!";
-    } else {
-        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-        if ($stmt->execute([$username, $email, $password])) {
-            $message = "Đăng ký thành công!";
+        if ($check->rowCount() > 0) {
+            $message = "Username hoặc Email đã tồn tại!";
         } else {
-            $message = "Lỗi đăng ký!";
+            // Thêm người dùng mới
+            $stmt = $conn->prepare("INSERT INTO users (username, email, password, created_at) VALUES (:username, :email, :password, NOW())");
+            $stmt->bindParam(':username', $username);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':password', $password);
+
+            if ($stmt->execute()) {
+                $message = "Đăng ký thành công!";
+            } else {
+                $message = "Lỗi đăng ký!";
+            }
         }
+    } catch (PDOException $e) {
+        $message = "Lỗi kết nối CSDL: " . $e->getMessage();
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
