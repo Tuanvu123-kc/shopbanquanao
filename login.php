@@ -1,35 +1,28 @@
 <?php
 session_start();
-
-
 require 'config.php';
 
-if (isset($_SESSION['user1_id'])) {
-    header("Location: index.php"); // Nếu đã đăng nhập, chuyển về trang chính
+if (isset($_SESSION['user_id'])) {
+    header("Location: index.php");
     exit();
 }
 
 $message = "";
 
-
-    if (!$conn) {
-        die("Lỗi kết nối database: " . mysqli_connect_error());
-    }
-    
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT id, password FROM users1 WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
-    $stmt->bind_result($id, $hashed_password);
 
     if ($stmt->num_rows > 0) {
+        $stmt->bind_result($id, $hashed_password);
         $stmt->fetch();
+
         if (password_verify($password, $hashed_password)) {
-            echo "Đăng nhập thành công!";
             $_SESSION['user_id'] = $id;
             $_SESSION['username'] = $username;
             header("Location: index.php");
@@ -40,9 +33,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $message = "❌ Tên đăng nhập không tồn tại!";
     }
+
     $stmt->close();
+    $conn->close();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="vi">
